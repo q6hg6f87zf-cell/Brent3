@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>THE HOLLOW REALM: WORLD BIBLE 1.0</title>
+  
+  <style>
+    :root {
+      --bg: #02040a;
+      --surface: rgba(13, 17, 30, 0.45);
+      --card: rgba(20, 25, 45, 0.55);
+      --border: rgba(125, 150, 255, 0.15);
+      --border-glow: rgba(125, 170, 255, 0.4);
+      --accent: #818cf8;
+      --gold: #fbbf24;
+      --red: #f87171;
+      --green: #34d399;
+      --purple: #a78bfa;
+      --text: #f8fafc;
+      --dim: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, system-ui, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; -webkit-tap-highlight-color: transparent; line-height: 1.5; }
+
+    /* --- LIQUID UI --- */
+    .header-img { width: 100%; height: 220px; object-fit: cover; object-position: center top; -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%); position: absolute; top: 0; left: 0; z-index: 0; }
+    .header-glass { background: rgba(2, 4, 10, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); padding: 24px 16px 16px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .live-badge { background: rgba(251, 191, 36, 0.15); border: 1px solid var(--gold); color: var(--gold); font-size: 0.65rem; font-weight: 800; padding: 4px 14px; border-radius: 20px; letter-spacing: 2px; text-transform: uppercase; animation: pulse 2s infinite; }
+    
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+    .tabs { display: flex; background: rgba(10, 15, 30, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; padding: 6px 10px; position: sticky; top: 72px; z-index: 999; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { padding: 12px 18px; font-size: 0.75rem; font-weight: 700; color: var(--dim); cursor: pointer; white-space: nowrap; border-radius: 20px; margin: 4px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; flex-shrink: 0; }
+    .tab.active { color: #fff; background: rgba(129, 140, 248, 0.25); border-color: rgba(129, 140, 248, 0.4); box-shadow: 0 0 15px rgba(129, 140, 248, 0.2); }
+
+    .panel { display: none; padding: 20px 16px 120px; position: relative; z-index: 10; max-width: 800px; margin: 0 auto; }
+    .panel.active { display: block; animation: slideUp 0.4s ease-out; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- CARDS & BLOCKS --- */
+    .card { background: var(--card); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 20px; position: relative; overflow: hidden; }
+    .card::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); opacity: 0.5; }
+    .section-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .section-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+    /* --- WEAPON & LORE BLOCKS --- */
+    .lore-block { margin-bottom: 32px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border-left: 3px solid var(--accent); }
+    .lore-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .lore-name { font-size: 1.1rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+    .lore-tag { font-size: 0.6rem; padding: 3px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; border: 1px solid currentColor; }
+    .lore-history { font-size: 0.85rem; color: var(--dim); line-height: 1.7; margin-bottom: 12px; font-style: italic; }
+    .lore-stats { display: grid; grid-template-columns: 1fr; gap: 10px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; border: 1px solid var(--border); }
+    .stat-label { font-size: 0.6rem; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
+    .stat-val { font-size: 0.75rem; color: #fff; }
+
+    /* --- PLAYER CARDS --- */
+    .player-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 16px; margin-bottom: 14px; position: relative; transition: 0.3s; }
+    .player-card:active { transform: scale(0.98); }
+    .avatar-stack { position: relative; width: 70px; height: 70px; margin-right: 16px; }
+    .avatar-main { width: 70px; height: 70px; border-radius: 18px; object-fit: cover; border: 1px solid var(--border); background: #0a0f1e; }
+    .avatar-sub { position: absolute; bottom: -6px; right: -6px; width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--bg); object-fit: cover; background: #1a2035; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+
+    /* --- INPUTS --- */
+    .input-label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+    .input { width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 14px; color: var(--text); font-size: 0.95rem; outline: none; transition: 0.2s; margin-bottom: 16px; -webkit-appearance: none; }
+    .input:focus { border-color: var(--accent); background: rgba(0,0,0,0.6); box-shadow: 0 0 15px rgba(129,140,248,0.1); }
+    
+    .roll-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+    .roll-cell { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 14px; border: 1px solid var(--border); }
+
+    /* --- FORGE BUTTON --- */
+    .forge-btn { width: 100%; padding: 18px; border-radius: 16px; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: #fff; font-weight: 800; font-size: 1rem; border: none; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.3); box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3); margin-top: 10px; }
+    .forge-btn:active { transform: scale(0.97); }
+
+    /* --- BUTTONS --- */
+    .btn { width: 100%; padding: 12px 20px; border-radius: 12px; border: 1px solid var(--accent); cursor: pointer; font-size: 0.85rem; font-weight: 600; background: rgba(129, 140, 248, 0.2); color: var(--accent); transition: all 0.2s ease; text-align: center; display: inline-block; }
+    .btn-sm { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 0.75rem; font-weight: 500; background: rgba(255,255,255,0.05); color: #fff; }
+
+    /* --- NPC MEMORY --- */
+    .npc-memory-box { margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px; }
+    .rumor-tag { color: var(--gold); font-size: 0.65rem; font-weight: 800; margin-bottom: 4px; display: block; }
+    .bounty-tag { color: var(--red); font-size: 0.65rem; font-weight: 800; margin-bottom: 4px; display: block; }
+
+    /* --- MODALS --- */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 1000; padding: 20px; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--bg); border: 1px solid var(--border-glow); border-radius: 24px; width: 100%; max-width: 450px; padding: 24px; max-height: 85vh; overflow-y: auto; }
+
+    .ripple { position: fixed; width: 80px; height: 80px; margin-left: -40px; margin-top: -40px; background: radial-gradient(circle, rgba(129, 140, 248, 0.4) 0%, rgba(129, 140, 248, 0) 70%); border-radius: 50%; pointer-events: none; z-index: 9999; animation: rippleAnim 0.7s ease-out forwards; }
+    @keyframes rippleAnim { 0% { transform: scale(0.3); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
+  </style>
+</head>
+<body>
+
+  <script>
+    document.addEventListener('pointerdown', function(e) {
+      if(['BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName) || e.target.closest('label')) return;
+      const r = document.createElement('div');
+      r.className = 'ripple';
+      r.style.left = e.clientX + 'px';
+      r.style.top = e.clientY + 'px';
+      document.body.appendChild(r);
+      setTimeout(() => r.remove(), 800);
+    });
+  </script>
+
+  <img src="IMG_5131.png" class="header-img" onerror="this.style.display='none'">
+  <div class="header-glass">
+    <div>
+      <div style="font-weight:900; font-size:1.3rem; letter-spacing:-0.5px;">THE HOLLOW REALM</div>
+      <div style="font-size:0.65rem; color:var(--accent); letter-spacing:3px; text-transform:uppercase; margin-top:2px; font-weight:700;">World Bible Console</div>
+    </div>
+    <div class="live-badge">Live System</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-target="party">👥 Party</div>
+    <div class="tab" data-target="forge">🪆 Forge</div>
+    <div class="tab" data-target="arsenal">⚔️ Arsenal</div>
+    <div class="tab" data-target="lore">📖 Lore</div>
+    <div class="tab" data-target="npcs">👁 NPCs</div>
+    <div class="tab" data-target="arena">🎲 Arena</div>
+    <div class="tab" data-target="rules">📜 Rules</div>
+    <div class="tab" data-target="wrapup">📝 Wrap</div>
+  </div>
+
+  <div style="padding-top:180px; margin-top:-180px;"></div>
+
+  <div id="panel-party" class="panel active">
+    <div class="section-title">Active Adventurers</div>
+    <input class="input" id="searchBar" placeholder="Search by character or @user..." oninput="refreshParty()">
+    <div id="partyList"></div>
+  </div>
+
+  <div id="panel-forge" class="panel">
+    <div class="card">
+      <div class="section-title">Create Identity</div>
+      <label class="input-label">TikTok Username</label>
+      <input class="input" id="f-user" placeholder="@username">
+      
+      <label class="input-label">Lore Name</label>
+      <select class="input" id="f-name" onchange="handleCustomName(this.value)">
+        <option value="">Choose a Retiring Name...</option>
+        <option>Alden</option><option>Valerius</option><option>Serana</option><option>Kaelen</option><option>Torbjorn</option>
+        <option>Elara</option><option>Fenris</option><option>Isolde</option><option>Gideon</option><option>Vael</option>
+        <option>Nyx</option><option>Draven</option><option>Soren</option><option>Lyra</option><option>Thorne</option>
+        <option>Vanya</option><option>Elias</option><option>Rurik</option><option>Sylas</option><option>Aric</option>
+        <option value="CUSTOM">✦ Forge Custom Name...</option>
+      </select>
+      <input class="input" id="f-custom" placeholder="Type Custom Name..." style="display:none; margin-top:-8px;">
+
+      <label class="input-label">Class Path</label>
+      <select class="input" id="f-class">
+        <option value="">Select Path...</option>
+        <option value="Warrior">Warrior / Knight</option>
+        <option value="Wizard">Wizard / Spellcaster</option>
+        <option value="Rogue">Rogue / Trickster</option>
+        <option value="Healer">Healer / Support</option>
+        <option value="Merchant">Merchant / Crafter</option>
+        <option value="Bard">Bard / Performer</option>
+      </select>
+
+      <div class="section-title">Visual Imprinting</div>
+      <div style="display:flex; gap:12px; margin-bottom:12px;">
+        <div style="flex:1;">
+          <label class="input-label" style="text-align:center;">TikTok Avatar</label>
+          <label class="btn-sm" style="display:block; text-align:center; padding:12px; border:1px dashed var(--accent);">
+            UPLOAD <input type="file" hidden onchange="handleImage(this, 'user')">
+          </label>
+          <img id="prev-user" style="width:100%; height:90px; object-fit:cover; border-radius:12px; margin-top:8px; display:none; border:1px solid var(--border);">
+        </div>
+        <div style="flex:1;">
+          <label class="input-label" style="text-align:center;">Character Art</label>
+          <label class="btn-sm" style="display:block; text-align:center; padding:12px; border:1px dashed var(--gold);">
+            UPLOAD <input type="file" hidden onchange="handleImage(this, 'char')">
+          </label>
+          <img id="prev-char" style="width:100%; height:90px; object-fit:cover; border-radius:12px; margin-top:8px; display:none; border:1px solid var(--border);">
+        </div>
+      </div>
+
+      <div class="section-title">The Seven Rolls (1-20)</div>
+      <div class="roll-grid">
+        <div class="roll-cell"><label class="input-label">Reputation</label><input type="number" id="roll-1" class="input" placeholder="0"></div>
+        <div class="roll-cell"><label class="input-label">Trait Tier</label><input type="number" id="roll-2" class="input" placeholder="0"></div>
+        <div class="roll-cell"><label class="input-label">Weapon Roll</label><input type="number" id="roll-3" class="input" placeholder="0"></div>
+        <div class="roll-cell"><label class="input-label">Signature Skill</label><input type="number" id="roll-4" class="input" placeholder="0"></div>
+        <div class="roll-cell"><label class="input-label">Shadow Trait</label><input type="number" id="roll-5" class="input" placeholder="0"></div>
+        <div class="roll-cell"><label class="input-label">Enchantment</label><input type="number" id="roll-6" class="input" placeholder="0"></div>
+        <div class="roll-cell" style="grid-column: span 2;"><label class="input-label">Destiny Thread</label><input type="number" id="roll-7" class="input" placeholder="0"></div>
+      </div>
+
+      <button class="forge-btn" onclick="commitCharacter()">FORGE & COMMIT TO LORE</button>
+    </div>
+  </div>
+
+  <div id="panel-arsenal" class="panel">
+    <div class="card">
+        <div class="section-title">The Master Armory</div>
+        <select class="input" id="arsenalFilter" onchange="renderArsenalHardcoded()">
+            <option value="Warrior">Warrior Weapons</option>
+            <option value="Wizard">Wizard Focuses</option>
+            <option value="Rogue">Rogue Blades</option>
+            <option value="Healer">Healer Kits</option>
+            <option value="Merchant">Merchant Tools</option>
+            <option value="Bard">Bard Instruments</option>
+        </select>
+        <div id="arsenalDisplay"></div>
+    </div>
+  </div>
+
+  <div id="panel-lore" class="panel">
+    <div class="card">
+        <div class="section-title">The Lore Archive</div>
+        <select class="input" id="loreFilter" onchange="renderLoreHardcoded()">
+            <option value="Skills">Signature Skills (All Classes)</option>
+            <option value="Shadows">Shadow Traits (All Classes)</option>
+            <option value="Enchants">Enchantments (All Classes)</option>
+            <option value="Destiny">Destiny Threads (All Classes)</option>
+            <option value="Factions">World Factions & History</option>
+        </select>
+        <div id="loreDisplay"></div>
+    </div>
+  </div>
+
+  <div id="panel-npcs" class="panel">
+    <div style="display:flex; gap:10px; margin-bottom:12px;">
+      <input class="input" id="npcSearch" placeholder="Filter NPCs..." oninput="refreshNpcs()" style="margin:0; flex:1;">
+      <button class="btn-sm" style="background:var(--accent);" onclick="openNpcEditor('new')">+ New NPC</button>
+    </div>
+    <div id="npcListDisplay"></div>
+  </div>
+
+  <div id="panel-arena" class="panel">
+    <div class="card" style="text-align:center;">
+        <div style="font-size:5rem;" onclick="rollD20()">🎲</div>
+        <div id="rollVal" style="font-size:2.5rem; font-weight:bold; color:var(--accent);">ROLL FATE</div>
+    </div>
+    <div class="card">
+      <div class="section-title">Box Battle Finalization</div>
+      <div style="display:flex; gap:10px; margin-bottom:12px;">
+        <div style="flex:1;">
+          <input class="input" id="b-p1" placeholder="P1 Username" style="margin-bottom:6px;">
+          <input class="input" id="b-c1" type="number" placeholder="Final Coins" style="margin:0; color:var(--gold);">
+        </div>
+        <div style="display:flex; align-items:center; font-weight:bold; color:var(--accent);">VS</div>
+        <div style="flex:1;">
+          <input class="input" id="b-p2" placeholder="P2 Username" style="margin-bottom:6px;">
+          <input class="input" id="b-c2" type="number" placeholder="Final Coins" style="margin:0; color:var(--gold);">
+        </div>
+      </div>
+      <button class="btn" style="border-color:var(--gold); color:var(--gold);" onclick="logBattle()">Commit Battle Result</button>
+    </div>
+  </div>
+
+  <div id="panel-rules" class="panel">
+    <div class="card">
+        <div class="section-title">The Core Laws</div>
+        <div style="font-size:0.8rem; color:var(--text); line-height:1.7;">
+            <p>1. <strong>Death is Permanent:</strong> Unless a Resurrection (6k coins) is paid or a Healer revives you, your name retires into history.</p><br>
+            <p>2. <strong>Everything Carries Over:</strong> Your HP, items, reputations, and curses save to the cloud. Tomorrow is a continuation, not a reset.</p><br>
+            <p>3. <strong>The Box Battle:</strong> Highest coins after 3 minutes wins. Winner selects consequence from the tier reached. DM rolls d20 to finalize. Loser accepts the Domino Effect.</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="section-title">Frequently Asked Questions</div>
+        <div id="faqList"></div>
+    </div>
+  </div>
+
+  <div id="panel-wrapup" class="panel">
+    <div class="card">
+      <div class="section-title">Post-Session Checklist</div>
+      <div style="font-size:0.8rem; line-height:2;">
+        <input type="checkbox" id="chk1"> <label for="chk1">HP updated for all active players</label><br>
+        <input type="checkbox" id="chk2"> <label for="chk2">Inventory & Lore changes logged</label><br>
+        <input type="checkbox" id="chk3"> <label for="chk3">Box Battle ripple effects noted</label><br>
+        <input type="checkbox" id="chk4"> <label for="chk4">Discord summary posted</label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Campaign Notes & Unresolved Threads</div>
+      <textarea id="sessNotes" class="input" style="height:200px;" oninput="saveNotes()"></textarea>
+    </div>
+    <button class="btn" style="background:var(--red); color:#fff; border:none;" onclick="clearAllData()">⚠️ WIPE ENTIRE DATABASE</button>
+  </div>
+
+  <div class="modal-overlay" id="npcModal"><div class="modal" id="npcModalContent"></div></div>
+  <div class="modal-overlay" id="pModal"><div class="modal" id="pModalContent"></div></div>
+
+  <script>
+    // ════════════════════════════════════════════════════════════
+    // THE MASTER SCRIPT ENGINE (RAW HARDCODED ARCHITECTURE)
+    // ════════════════════════════════════════════════════════════
+
+    let state = JSON.parse(localStorage.getItem('HR_WORLD_BIBLE_V1')) || { players: [], npcs: [], logs: [], notes: "" };
+    let tempUserImg = null, tempCharImg = null;
+
+    function save() { localStorage.setItem('HR_WORLD_BIBLE_V1', JSON.stringify(state)); }
+
+    // --- TAB SYSTEM ---
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            const target = tab.getAttribute('data-target');
+            document.getElementById('panel-' + target).classList.add('active');
+            
+            if(target === 'party') refreshParty();
+            if(target === 'arsenal') renderArsenalHardcoded();
+            if(target === 'lore') renderLoreHardcoded();
+            if(target === 'npcs') refreshNpcs();
+            if(target === 'rules') renderFaq();
+            if(target === 'wrapup') document.getElementById('sessNotes').value = state.notes || "";
+        });
+    });
+
+    // --- CHARACTER FORGE LOGIC ---
+    function handleCustomName(val) {
+        document.getElementById('f-custom').style.display = (val === 'CUSTOM') ? 'block' : 'none';
+    }
+
+    function handleImage(input, type) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 150; canvas.height = 150;
+                canvas.getContext('2d').drawImage(img, 0, 0, 150, 150);
+                const data = canvas.toDataURL('image/jpeg', 0.7);
+                if(type === 'user') { tempUserImg = data; document.getElementById('prev-user').src = data; document.getElementById('prev-user').style.display = 'block'; }
+                else { tempCharImg = data; document.getElementById('prev-char').src = data; document.getElementById('prev-char').style.display = 'block'; }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    function commitCharacter() {
+        const user = document.getElementById('f-user').value;
+        const cls = document.getElementById('f-class').value;
+        let name = document.getElementById('f-name').value;
+        if(name === 'CUSTOM') name = document.getElementById('f-custom').value;
+
+        if(!user || !name || !cls) return alert("You must provide TikTok user, Lore Name, and Class.");
+
+        const p = {
+            id: Date.now(), user, name, cls,
+            hp: (cls === 'Warrior') ? 12 : (cls === 'Wizard') ? 7 : (cls === 'Healer') ? 9 : 8,
+            maxHp: (cls === 'Warrior') ? 12 : (cls === 'Wizard') ? 7 : (cls === 'Healer') ? 9 : 8,
+            userImg: tempUserImg, charImg: tempCharImg,
+            stats: {
+                r1: document.getElementById('roll-1').value || "-", r2: document.getElementById('roll-2').value || "-", r3: document.getElementById('roll-3').value || "-",
+                r4: document.getElementById('roll-4').value || "-", r5: document.getElementById('roll-5').value || "-", r6: document.getElementById('roll-6').value || "-",
+                r7: document.getElementById('roll-7').value || "-"
+            },
+            status: "Active & Healthy", faction: "Unaligned", inv: ""
+        };
+
+        state.players.unshift(p);
+        save();
+        alert(name + " has been written into the Lore.");
+        
+        // Reset Forge
+        document.getElementById('f-user').value = '';
+        document.getElementById('f-name').value = '';
+        document.getElementById('f-custom').value = '';
+        document.getElementById('f-class').value = '';
+        document.getElementById('roll-1').value = ''; document.getElementById('roll-2').value = ''; document.getElementById('roll-3').value = '';
+        document.getElementById('roll-4').value = ''; document.getElementById('roll-5').value = ''; document.getElementById('roll-6').value = ''; document.getElementById('roll-7').value = '';
+        document.getElementById('prev-user').style.display = 'none'; document.getElementById('prev-char').style.display = 'none';
+        tempUserImg = null; tempCharImg = null;
+    }
+
+    function refreshParty() {
+        const s = document.getElementById('searchBar').value.toLowerCase();
+        document.getElementById('partyList').innerHTML = state.players.filter(p => p.name.toLowerCase().includes(s) || p.user.toLowerCase().includes(s)).map(p => {
+            const pct = (p.hp / p.maxHp) * 100;
+            return `
+            <div class="player-card">
+                <div style="display:flex; align-items:center;">
+                    <div class="avatar-stack">
+                        <div class="avatar-main">${p.charImg ? `<img src="${p.charImg}" style="width:100%;height:100%;border-radius:18px;object-fit:cover;">` : '👤'}</div>
+                        <div class="avatar-sub">${p.userImg ? `<img src="${p.userImg}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : '@'}</div>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <div style="font-weight:900; font-size:1.2rem;">${p.name}</div>
+                                <div style="font-size:0.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:1px;">@${p.user} • ${p.cls}</div>
+                            </div>
+                            <button class="btn-sm" style="border:none; padding:4px 8px; background:transparent; font-size:1rem;" onclick="openPlayerEditor(${p.id})">⚙️</button>
+                        </div>
+                        <div style="font-size:0.6rem; color:var(--dim); margin-top:4px;">${p.status} | ${p.faction}</div>
+                        <div style="margin-top:8px; display:flex; align-items:center; gap:8px;">
+                            <button class="btn-sm" style="border-color:var(--red); color:var(--red);" onclick="adjHp(${p.id}, -1)">-</button>
+                            <div style="flex:1;" class="hp-bar"><div class="hp-fill" style="width:${pct}%; background:${pct > 40 ? 'var(--green)' : 'var(--red)'}"></div></div>
+                            <div style="font-size:0.7rem; font-weight:bold; color:var(--dim);">${p.hp}/${p.maxHp}</div>
+                            <button class="btn-sm" style="border-color:var(--green); color:var(--green);" onclick="adjHp(${p.id}, 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function adjHp(id, d) {
+        const p = state.players.find(x => x.id === id);
+        p.hp = Math.max(0, Math.min(p.maxHp, p.hp + d));
+        save();
+        refreshParty();
+    }
+
+    function openPlayerEditor(id) {
+        const p = state.players.find(x => x.id === id);
+        document.getElementById('pModalContent').innerHTML = `
+            <div class="section-title">Adventurer: ${p.name}</div>
+            <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border:1px solid var(--border); margin-bottom:15px; font-size:0.65rem; color:var(--dim); display:grid; grid-template-columns:1fr 1fr; gap:5px;">
+                <div><strong>Rep:</strong> ${p.stats.r1}</div>
+                <div><strong>Trait:</strong> ${p.stats.r2}</div>
+                <div><strong>Wpn:</strong> ${p.stats.r3}</div>
+                <div><strong>Skill:</strong> ${p.stats.r4}</div>
+                <div><strong>Shad:</strong> ${p.stats.r5}</div>
+                <div><strong>Ench:</strong> ${p.stats.r6}</div>
+                <div style="grid-column: span 2;"><strong>Dest:</strong> ${p.stats.r7}</div>
+            </div>
+            <label class="input-label">Current Status</label><input class="input" id="ep-status" value="${p.status}">
+            <label class="input-label">Faction Allegiance</label><input class="input" id="ep-fac" value="${p.faction}">
+            <label class="input-label">Max HP Override</label><input type="number" class="input" id="ep-mhp" value="${p.maxHp}">
+            <label class="input-label">Inventory & Backstory Notes</label><textarea class="input" id="ep-inv" style="height:120px;">${p.inv}</textarea>
+            
+            <button class="btn" onclick="savePlayer(${p.id})">Commit Overrides</button>
+            <button class="btn-sm" style="width:100%; margin-top:10px; background:rgba(248, 113, 113, 0.2); border-color:var(--red); color:var(--red);" onclick="delPlayer(${p.id})">Retire from Lore (Permadeath)</button>
+            <button class="btn-sm" style="width:100%; margin-top:10px;" onclick="closeModals()">Close Menu</button>
+        `;
+        document.getElementById('pModal').classList.add('open');
+    }
+
+    function savePlayer(id) {
+        const p = state.players.find(x => x.id === id);
+        p.status = document.getElementById('ep-status').value;
+        p.faction = document.getElementById('ep-fac').value;
+        p.maxHp = parseInt(document.getElementById('ep-mhp').value);
+        if(p.hp > p.maxHp) p.hp = p.maxHp;
+        p.inv = document.getElementById('ep-inv').value;
+        save(); closeModals(); refreshParty();
+    }
+
+    function delPlayer(id) { 
+        if(confirm("Are you certain? This character will be permanently erased from history.")) { 
+            state.players = state.players.filter(x => x.id !== id); 
+            save(); closeModals(); refreshParty(); 
+        } 
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // ARSENAL: EXPLICIT HARDCODED BLOCKS (NO SHORTCUTS)
+    // ════════════════════════════════════════════════════════════
+    function renderArsenalHardcoded() {
+        const cls = document.getElementById('arsenalFilter').value;
+        const display = document.getElementById('arsenalDisplay');
+        let html = "";
+        
+        if(cls === 'Warrior') {
+            html += `
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Cracked Garrison Sword</span> <span class="lore-tag" style="color:#888">Battered</span></div>
+                <div class="lore-history">Mass-produced for the Kingdom’s standing army at a time when the Kingdom still had a standing army. The garrison forges ran day and night. Quality was never the point — quantity was. Every fracture line marks a blow that should have broken it and didn’t. Soldiers who carry cracked blades don’t replace them. They name them.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">1 - 4</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">No mechanical bonus. Pass-down history.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Garrison Longsword</span> <span class="lore-tag" style="color:#fff">Standard</span></div>
+                <div class="lore-history">A Garrison Longsword in good condition means the Warrior acquired it recently, or they’ve been maintaining it obsessively. Standard issue for Kingdom officers — a step above the rank and file steel, properly tempered, properly balanced. Designed to last a career. Some have.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">5 - 9</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Reliable, balanced steel. Performs consistently.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Tempered Hollow Steel Blade</span> <span class="lore-tag" style="color:var(--green)">Fine</span></div>
+                <div class="lore-history">Forged from ore found in the deepest parts of the Underground Caverns. The metal responds to heat differently, darkening in colors normal steel doesn't reach. The finished blade has a quality that experienced fighters describe as present. Like it’s paying attention.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">10 - 14</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">+1 combat rolls in dark. Strikes incorporeal entities.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">The Shieldbreaker</span> <span class="lore-tag" style="color:var(--accent)">Rare</span></div>
+                <div class="lore-history">Nobody knows who made The Shieldbreaker. The modifications to the blade geometry — a subtle thickening toward the tip, a redistribution of weight — suggest a maker who understood exactly how to find the gap in any armor. Recovered from a battlefield site that shouldn’t exist.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">15 - 19</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Ignores 1 point of enemy DEF on successful hit.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">THE HOLLOW'S EDGE</span> <span class="lore-tag" style="color:var(--gold); border-color:var(--gold);">Mythic</span></div>
+                <div class="lore-history">There is no forge record because it was not forged. Warriors who carry it say it was simply there one morning. The Edge does not behave like a weapon. It behaves like a decision. Ambient danger decreases around the carrier because threats reassess their chances.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">Natural 20</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Double effect vs Hollow entities. Final strike option.</div></div>
+                </div>
+            </div>`;
+        }
+
+        if(cls === 'Wizard') {
+            html += `
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Cracked Focus Crystal</span> <span class="lore-tag" style="color:#888">Battered</span></div>
+                <div class="lore-history">Focus crystals are grown, not cut — a process that takes years. A cracked one means something went wrong during growth. The crack splits the light into unexpected colors, making the channeling unpredictable. The crystal remembers the moment it broke.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">1 - 4</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Normal function, but fumbles amplify backfires.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Scholar's Focus Rod</span> <span class="lore-tag" style="color:#fff">Standard</span></div>
+                <div class="lore-history">Produced by the Sunken Library for researchers and affiliated practitioners. They are precisely what they need to be: reliable, standardized, easily replaced. Made to a specification that hasn't changed in generations.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">5 - 9</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Consistent casting. Recognized by Library NPCs.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Hollow-Tuned Grimoire</span> <span class="lore-tag" style="color:var(--green)">Fine</span></div>
+                <div class="lore-history">Made from materials that spent time in the Hollow before being processed. Paper from trees at the Edge. Ink that contains trace amounts of Hollow water. The tome is receptive to Hollow-specific magic. It also tends to open to relevant pages on its own.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">10 - 14</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">+1 spell rolls in Caverns or near The Edge.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">The Resonance Staff</span> <span class="lore-tag" style="color:var(--accent)">Rare</span></div>
+                <div class="lore-history">The institution that produced it no longer exists. The staff amplifies offensive spellwork by creating a resonance effect — the magical output carries further and lands harder. The tip holds a crystal that resonates audibly at a frequency just below human hearing.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">15 - 19</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">+1 Offensive Spell Damage. Extended casting range.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">THE VOID CODEX</span> <span class="lore-tag" style="color:var(--purple); border-color:var(--purple);">Mythic</span></div>
+                <div class="lore-history">The Void Codex was not written. Wizards describe the experience of reading it as receiving information that was already in their mind. Its pages contain spells that have no names. No Wizard who has carried the Void Codex has aged normally afterward.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">Natural 20</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">+2 All Spell Rolls. Cast unprecedented spells once/arc.</div></div>
+                </div>
+            </div>`;
+        }
+
+        if(cls === 'Rogue') {
+            html += `
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Worn Shortsword</span> <span class="lore-tag" style="color:#888">Battered</span></div>
+                <div class="lore-history">Brought from somewhere else. The wear on this blade is personal — scratches, re-edges, the grip worn smooth in specific places. Familiarity means no surprises at the wrong moment. In the Rogue's line of work, that is worth more than a sharper edge.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">1 - 4</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Reliable under high pressure. No negative modifiers.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Balanced Daggers (Pair)</span> <span class="lore-tag" style="color:#fff">Standard</span></div>
+                <div class="lore-history">Not improvised weapons. Professional equipment. The balance is calibrated so both daggers behave identically. Heavier toward the grip for throwing, heavier toward the tip for close work. Muscle memory transfers perfectly.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">5 - 9</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Negates defensive fighting penalty in close combat.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Hollow-Edged Stiletto</span> <span class="lore-tag" style="color:var(--green)">Fine</span></div>
+                <div class="lore-history">Designed for precision work in confined spaces. The Hollow ore inlaid along the cutting edge makes the blade marginally more effective when used from concealment. The smiths who produce these don't advertise. Clients find them.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">10 - 14</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">+1 attack rolls from stealth. Penetrates heavy armor.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">The Silencer</span> <span class="lore-tag" style="color:var(--accent)">Rare</span></div>
+                <div class="lore-history">There is no documentation because anyone who saw it decided they hadn't seen anything. Witnesses consistently struggle to describe the blade's shape. Whatever action is taken, no sound is produced that wasn't intended. Footstep, draw, strike — perfect silence.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">15 - 19</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Actions unheard by untargeted NPCs. Flawless stealth.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">THE LAST WORD</span> <span class="lore-tag" style="color:var(--gold); border-color:var(--gold);">Mythic</span></div>
+                <div class="lore-history">It chooses its carrier. The previous carrier is always no longer alive when the transfer occurs. It ends things. Not dramatically. Not visibly. With a quiet finality that makes witnesses unsure anything happened at all.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">Natural 20</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Once per arc: an intended action simply succeeds. No roll.</div></div>
+                </div>
+            </div>`;
+        }
+
+        if(cls === 'Healer') {
+            html += `
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Worn Herb Satchel</span> <span class="lore-tag" style="color:#888">Battered</span></div>
+                <div class="lore-history">Tells the story of wherever the Healer came from. Stains inside suggest a wide range of botanical preparations. Soft, rounded edges from years of use. A Healer with a pristine kit hasn't worked. This one has worked.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">1 - 4</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Allows field healing without material availability rolls.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Mender's Kit & Staff</span> <span class="lore-tag" style="color:#fff">Standard</span></div>
+                <div class="lore-history">Developed by the Healing Orders. The staff serves as walking support and arcane conduit. The kit attaches during transport. Consistent quality. Healing channeled through the staff adds a warmth that patients describe as comforting.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">5 - 9</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Recognized by Healing Order NPCs as certification.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Hollow Root Salves</span> <span class="lore-tag" style="color:var(--green)">Fine</span></div>
+                <div class="lore-history">Roots adapted to low light and mineral-heavy soil near the Caverns. The chemistry adapts. Standard injuries respond normally. Hollow-curse related injuries respond as if the salve understands what caused the problem.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">10 - 14</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">+1 healing on Hollow-curse related injuries.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">The Binding Lantern</span> <span class="lore-tag" style="color:var(--accent)">Rare</span></div>
+                <div class="lore-history">Developed by Sunken Library researchers because Healers couldn't treat what they couldn't see. The lantern reveals what is hidden: the faint outline of a curse, the shimmer of an enchantment. The research division was dissolved, but the lanterns remain.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">15 - 19</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Once per session: Reveal all hidden status effects.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">THE FIRST REMEDY</span> <span class="lore-tag" style="color:var(--purple); border-color:var(--purple);">Mythic</span></div>
+                <div class="lore-history">Predates the Hollow Realm’s current form. It has no mechanism. It simply produces the outcome of correct treatment regardless of the actual treatment applied. The Healer feels a clarity that is less like knowledge and more like recognition.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">Natural 20</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Once per arc: Healing action works at maximum effect. No roll.</div></div>
+                </div>
+            </div>`;
+        }
+
+        if(cls === 'Merchant') {
+            html += `
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Rusty Counting Scales</span> <span class="lore-tag" style="color:#888">Battered</span></div>
+                <div class="lore-history">Rusted, cleaned, and rusted again. Outdoor markets, damp storage, river crossings. Rust and recovery is the biography of a working instrument. The arms take longer to settle than a new scale, but experienced users account for it automatically.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">1 - 4</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Standard valuation and trade functioning.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Merchant's Pack & Ledger</span> <span class="lore-tag" style="color:#fff">Standard</span></div>
+                <div class="lore-history">The Guild standard configuration. The ledger is the core piece—a business record, a contact list, a debt tracker. Merchants who lose their ledger describe the experience in terms usually reserved for physical injury.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">5 - 9</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Guild service access. Professional courtesies extended.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Hollow Market Satchel</span> <span class="lore-tag" style="color:var(--green)">Fine</span></div>
+                <div class="lore-history">Treated with a mineral compound sourced from Cavern deposits. It creates a property that inspectors find unsettling: the satchel feels empty on examination regardless of contents. General 'bag' is detectable. The contents are not.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">10 - 14</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Items carried inside undetectable by mundane inspection.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">The Gilded Tongue</span> <span class="lore-tag" style="color:var(--accent)">Rare</span></div>
+                <div class="lore-history">Commissioned to facilitate conversations that have reached an impasse. It is the application of exactly the right words in exactly the right tone. Users describe knowing what the other party needs to hear to agree without losing face.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">15 - 19</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Once per arc: Guarantee safe passage or neutralize hostile NPC.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">THE OPEN ACCOUNT</span> <span class="lore-tag" style="color:var(--gold); border-color:var(--gold);">Mythic</span></div>
+                <div class="lore-history">A ledger that creates transactions. When written in, the entry becomes real—a debt owed, a favor pending. The Hollow treats the entries as binding. You cannot write an advantage without the entry being balanced by an equivalent cost elsewhere.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">Natural 20</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Once per arc: Write a transaction into binding truth.</div></div>
+                </div>
+            </div>`;
+        }
+
+        if(cls === 'Bard') {
+            html += `
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Cracked Lute</span> <span class="lore-tag" style="color:#888">Battered</span></div>
+                <div class="lore-history">Instruments crack under stress. A musician who repairs it has decided continuity matters more than perfection. The crack changes the sound—a specific warmth in the mid-range tones. Audiences describe it as honest.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">1 - 4</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Distinctive tone recognized by experienced listeners.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Travelling Instrument</span> <span class="lore-tag" style="color:#fff">Standard</span></div>
+                <div class="lore-history">Built for the reality of performance on the road—inns, fire circles, festival grounds. Prioritizes durability and weather resistance. The instrument of a working performer, not a conservatory student.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">5 - 9</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Performs reliably in all adverse conditions.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">Hollow-Carved Instrument</span> <span class="lore-tag" style="color:var(--green)">Fine</span></div>
+                <div class="lore-history">Carved from trees at the Hollow's Edge. The grain spirals rather than runs straight. It sounds different in Hollow locations. Musicians describe the experience as the space itself responding to the music.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">10 - 14</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">+1 performance rolls in Hollow locations. Heard by entities.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">The Resonance Chord</span> <span class="lore-tag" style="color:var(--accent)">Rare</span></div>
+                <div class="lore-history">Origin undocumented. It changes the emotional state of a target with surgical precision. Not 'make them feel better' but 'make them feel exactly what they need to feel in order to make the decision the Bard requires.'</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">15 - 19</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Once per session: NPC mood change auto-succeeds.</div></div>
+                </div>
+            </div>
+            <div class="lore-block">
+                <div class="lore-header"><span class="lore-name">THE FIRST SONG</span> <span class="lore-tag" style="color:var(--purple); border-color:var(--purple);">Mythic</span></div>
+                <div class="lore-history">Predates the Hollow Realm’s current form. Instrument and composition are inseparable. When played, whatever is present stops and listens. Carriers describe having said something true that they didn't know they knew.</div>
+                <div class="lore-stats">
+                    <div><div class="stat-label">Roll Required</div><div class="stat-val">Natural 20</div></div>
+                    <div><div class="stat-label">Mechanics</div><div class="stat-val">Once per arc: Change world lore permanently. Entities listen.</div></div>
+                </div>
+            </div>`;
+        }
+
+        display.innerHTML = html;
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // LORE & SKILLS: EXPLICIT HARDCODED BLOCKS (NO SHORTCUTS)
+    // ════════════════════════════════════════════════════════════
+    function renderLoreHardcoded() {
+        const type = document.getElementById('loreFilter').value;
+        const display = document.getElementById('loreDisplay');
+        let html = "";
+
+        if (type === 'Skills') {
+            html += `<div class="section-title">Warrior Signature Skills</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Reckless Charge [Roll: 1-2]</div><div class="lore-history">Throws themselves into danger first. -1 DEF, +2 first attack roll each session.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Broken Form [Roll: 3-4]</div><div class="lore-history">Fighting style is wrong but unpredictable. Enemies misread attacks. +1 to surprise strikes.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Shield Wall [Roll: 5-6]</div><div class="lore-history">Anchor a defensive position. Allies behind get +1 DEF while stationary.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Weapon Read [Roll: 7-8]</div><div class="lore-history">Reads fighting style on first contact. +1 to rolls against same enemy after first exchange.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">War Cry [Roll: 9-10]</div><div class="lore-history">Once per session, demoralize one enemy NPC. They must roll to act.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Controlled Aggression [Roll: 11-12]</div><div class="lore-history">Holds back until moment is right. +2 first strike after full turn observing.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Endurance Fighter [Roll: 13-14]</div><div class="lore-history">Does not tire. In extended conflicts, gains +1 each subsequent round.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Execution Strike [Roll: 15-16]</div><div class="lore-history">Finishing wounded targets. +3 attack against enemy below half HP.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Counter [Roll: 17-18]</div><div class="lore-history">When attack against them fails, immediately rolls a free response strike.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Battlefield Commander [Roll: 19-19]</div><div class="lore-history">Once per session, coordinate allied actions. All allies +1 next roll.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">THE HOLLOW'S BLADE [Roll: 20]</div><div class="lore-history">Strikes carry a darkness. On a Critical, the effect lingers into next session.</div></div>
+            
+            <div class="section-title" style="margin-top:40px;">Wizard Signature Skills</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Volatile Casting [Roll: 1-2]</div><div class="lore-history">No control, max output. Spells hit harder, 1-in-6 chance of side effect.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Forbidden Indexing [Roll: 3-4]</div><div class="lore-history">Memorized things they shouldn't. Can attempt any knowledge roll regardless of subject.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Spell Dampening [Roll: 5-6]</div><div class="lore-history">Reduce incoming magic by half. Once per session, no roll required.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Rune Reading [Roll: 7-8]</div><div class="lore-history">+2 deciphering magical inscriptions, texts, Hollow marks.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Projection [Roll: 9-10]</div><div class="lore-history">Cast minor illusion/distraction without roll. Once per session.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Arcane Diagnosis [Roll: 11-12]</div><div class="lore-history">Touch object/person and identify any magical effect instantly.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Counter-Spell [Roll: 13-14]</div><div class="lore-history">When enemy spell is cast, attempt interrupt via INT roll vs difficulty.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Hollow Channelling [Roll: 15-16]</div><div class="lore-history">Draw power from Hollow. Once per arc, cast spell beyond normal tier.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Memory Casting [Roll: 17-18]</div><div class="lore-history">Can replicate any spell witnessed once before. +1 to replicated spell.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">The Eye [Roll: 19-19]</div><div class="lore-history">See through one illusion/hidden thing per session automatically.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">THE HOLLOW'S TONGUE [Roll: 20]</div><div class="lore-history">Hollow answers when they speak. Once per arc, DM must answer a question truthfully.</div></div>
+            
+            <div class="section-title" style="margin-top:40px;">Rogue Signature Skills</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Pickpocketing [Roll: 1-2]</div><div class="lore-history">Lift small items on SPD roll. Fail means they notice.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Lock Reading [Roll: 3-4]</div><div class="lore-history">Identify lock mechanism in 30s. +2 to all lockpicking rolls.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Forgery [Roll: 5-6]</div><div class="lore-history">Produce convincing false documents, seals, or identities.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Tailing [Roll: 7-8]</div><div class="lore-history">Follow target without detection. Roll only if target actively watching.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Disguise [Roll: 9-10]</div><div class="lore-history">Assume different identity. +2 CHA while disguised. Breaks on close inspection.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Poison Craft [Roll: 11-12]</div><div class="lore-history">Apply contact poison to any item. Effect negotiated with DM based on materials.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Escape Artist [Roll: 13-14]</div><div class="lore-history">Cannot be restrained for more than one round without roll to break free.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Rooftop Navigation [Roll: 15-16]</div><div class="lore-history">Move full speed across vertical terrain. No penalty for height.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Dead Drop Network [Roll: 17-18]</div><div class="lore-history">Information caches everywhere. Once/arc, retrieve intel from hidden drop.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Ghost Entry [Roll: 19-19]</div><div class="lore-history">Enter non-magically-sealed location without a roll. Leaves no trace.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">THE HOLLOW'S SHADOW [Roll: 20]</div><div class="lore-history">Functionally invisible for one full scene per arc. Not magic. Just gone.</div></div>
+            
+            <div class="section-title" style="margin-top:40px;">Healer Signature Skills</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Field Stitching [Roll: 1-2]</div><div class="lore-history">Stabilize wound without materials. Buys two rounds before condition worsens.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Poison Identification [Roll: 3-4]</div><div class="lore-history">Identify any toxin by sight/smell. +2 treating poisoned characters.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Psychic First Aid [Roll: 5-6]</div><div class="lore-history">Can treat mental trauma, fear effects, and psychological status.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Curse Reading [Roll: 7-8]</div><div class="lore-history">Identify nature and source of any curse on contact.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Pain Management [Roll: 9-10]</div><div class="lore-history">Suppress a character's injury penalty for one session. Damage remains unfelt.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Emergency Revival [Roll: 11-12]</div><div class="lore-history">Bring downed character to consciousness in one action, no roll, once/session.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Herbal Synthesis [Roll: 13-14]</div><div class="lore-history">Create restorative item from available materials. Once per location.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Hollow Medicine [Roll: 15-16]</div><div class="lore-history">Treatments in Hollow locations have doubled effect. The Hollow responds.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Death Diagnosis [Roll: 17-18]</div><div class="lore-history">Determine cause and time of death from a body with complete accuracy.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Vital Read [Roll: 19-19]</div><div class="lore-history">Observation alone reveals exact HP, active conditions, hidden injuries.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">THE HOLLOW'S HANDS [Roll: 20]</div><div class="lore-history">Touch closes wounds that should not close. Once per arc, full heal instantly.</div></div>
+            
+            <div class="section-title" style="margin-top:40px;">Merchant Signature Skills</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Fast Talk [Roll: 1-2]</div><div class="lore-history">Distract, delay, or confuse NPC with words. Buys one round without roll.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Counterfeit Detection [Roll: 3-4]</div><div class="lore-history">Identify fake currency, forged documents instantly.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Bulk Negotiation [Roll: 5-6]</div><div class="lore-history">When trading multiple items, secures better rate. +2 group trade rolls.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Market Reading [Roll: 7-8]</div><div class="lore-history">Know approx value and demand of any item in location without asking.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Smuggling Routes [Roll: 9-10]</div><div class="lore-history">Move restricted goods. Risk roll only at checkpoints.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Credit Network [Roll: 11-12]</div><div class="lore-history">Access funds beyond inventory via contacts. Must be repaid within one arc.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Auction Control [Roll: 13-14]</div><div class="lore-history">Control pace and pressure of any bidding situation.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Bribery [Roll: 15-16]</div><div class="lore-history">Almost any NPC has a price. CHA roll to find it. They cooperate once.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Hollow Arbitrage [Roll: 17-18]</div><div class="lore-history">Find value in dismissed things. Once/arc, turn worthless item into useful one.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">The Long Game [Roll: 19-19]</div><div class="lore-history">Plant an investment/favor. It pays off two sessions later automatically.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">THE HOLLOW'S PRICE [Roll: 20]</div><div class="lore-history">Name a price for anything. Once per arc, any NPC will pay it.</div></div>
+            
+            <div class="section-title" style="margin-top:40px;">Bard Signature Skills</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Crowd Reading [Roll: 1-2]</div><div class="lore-history">Instantly assess emotional state of any group. +2 to mass persuasion rolls.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Rumour Planting [Roll: 3-4]</div><div class="lore-history">Introduce false information. It spreads. CHA roll for speed.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Distraction Performance [Roll: 5-6]</div><div class="lore-history">Hold group's attention for 10 mins. No roll. No exceptions for standard NPCs.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Emotional Manipulation [Roll: 7-8]</div><div class="lore-history">+2 persuasion when exploiting a known emotional vulnerability.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Song Memory [Roll: 9-10]</div><div class="lore-history">Remember any piece of information heard in passing, perfectly, indefinitely.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Accent Mimicry [Roll: 11-12]</div><div class="lore-history">Replicate any voice, accent, or speech pattern after hearing it once.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Tragedy Writing [Roll: 13-14]</div><div class="lore-history">Compose piece about named NPC/player. Changes how others perceive them. Once/arc.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Rally [Roll: 15-16]</div><div class="lore-history">Once per session, restore morale. Every player ignores next negative modifier.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">The Earworm [Roll: 17-18]</div><div class="lore-history">A melody stays in target's head. +2 to influence them for rest of session.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">Living Broadcast [Roll: 19-19]</div><div class="lore-history">Performance spreads beyond immediate audience. Reaches people not there.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">THE HOLLOW'S SONG [Roll: 20]</div><div class="lore-history">The Hollow listens. Once per arc, a performance changes the world permanently.</div></div>`;
+        }
+
+        if (type === 'Shadows') {
+            html += `<div class="section-title">Warrior Shadow Traits</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Blood Debt [Roll: 1-2]</div><div class="lore-history">Owes life to someone dangerous. That someone will eventually collect.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Shakes [Roll: 3-4]</div><div class="lore-history">After major combat, roll WIS or suffer -1 to next session's first roll.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Wanted — Desertion [Roll: 5-6]</div><div class="lore-history">Official military order has their name. Soldiers recognize them.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Face [Roll: 7-8]</div><div class="lore-history">Haunted by someone they couldn't save. Sees their face in crisis.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Controlled Fury [Roll: 9-10]</div><div class="lore-history">On fumble, must roll WIS to avoid collateral damage to allies.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Oath Breaker [Roll: 11-12]</div><div class="lore-history">Broke a sworn vow once. Vow-dependent abilities start with -1.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Pride [Roll: 13-14]</div><div class="lore-history">Cannot accept help without CHA roll from helper. Refuses healing unless downed.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Old Wound [Roll: 15-16]</div><div class="lore-history">Injury never fully healed. In cold/damp locations, -1 to movement rolls.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Survivor's Weight [Roll: 17-18]</div><div class="lore-history">+1 WIS but -1 first roll when allies are in danger.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Hollow's Pull [Roll: 19-19]</div><div class="lore-history">Something in the Hollow calls specifically to them.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">MARKED [Roll: 20]</div><div class="lore-history">Visibly marked by something—a scar, brand. The Hollow did it.</div></div>
+            
+            <div class="section-title" style="margin-top:40px;">Wizard Shadow Traits</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Forbidden Debt [Roll: 1-2]</div><div class="lore-history">Acquired knowledge through transaction. Payment still outstanding.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Noise [Roll: 3-4]</div><div class="lore-history">Hears constant low frequency. Louder near Hollow locations.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Spell Sickness [Roll: 5-6]</div><div class="lore-history">After two spells in one session, gains minor physical symptom. Cumulative.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Institutional Exile [Roll: 7-8]</div><div class="lore-history">Expelled from an order. Certain doors are permanently closed.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Experiment [Roll: 9-10]</div><div class="lore-history">Was a subject once. Effects still surface unexpectedly.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Truth Compulsion [Roll: 11-12]</div><div class="lore-history">Cannot lie convincingly. CHA roll required for deception.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Watcher [Roll: 13-14]</div><div class="lore-history">Something has been observing them since entering the Hollow.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Knowledge Hunger [Roll: 15-16]</div><div class="lore-history">Cannot leave mystery unsolved. Will pursue past point of safety.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Hollow Sensitivity [Roll: 17-18]</div><div class="lore-history">Vivid, intrusive impressions in certain Hollow locations.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Answering [Roll: 19-19]</div><div class="lore-history">Something responded to a spell once. It's been quiet since.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">THE OPEN CHANNEL [Roll: 20]</div><div class="lore-history">The Hollow speaks through them uncontrolled. They don't remember it.</div></div>
+            
+            <div class="section-title" style="margin-top:40px;">Rogue Shadow Traits</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Contract [Roll: 1-2]</div><div class="lore-history">Unfinished job. Client is patient and well-connected.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Burned Identity [Roll: 3-4]</div><div class="lore-history">Previous name compromised. Someone in every faction knows the face.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Paranoia [Roll: 5-6]</div><div class="lore-history">Trusts no one. Allies must roll CHA to share sensitive plans.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Loose End [Roll: 7-8]</div><div class="lore-history">Left someone alive who shouldn't be. They're looking.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Compulsive Acquisition [Roll: 9-10]</div><div class="lore-history">Must take something of value from new locations. SPD roll to resist.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Double Identity [Roll: 11-12]</div><div class="lore-history">Two factions believe two different things about them. Both partially true.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Witnessed [Roll: 13-14]</div><div class="lore-history">Someone saw them do the unforgivable. That person is alive.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Hollow Debt [Roll: 15-16]</div><div class="lore-history">Hollow helped them escape once. Debt not acknowledged yet.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Exit Planning [Roll: 17-18]</div><div class="lore-history">Always planning to leave. Cannot commit to alliance. -1 trust rolls.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Pattern [Roll: 19-19]</div><div class="lore-history">Someone connecting their jobs. The picture isn't flattering.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">THE ERASED [Roll: 20]</div><div class="lore-history">Officially does not exist. No record. Hollow helped with that.</div></div>
+            
+            <div class="section-title" style="margin-top:40px;">Healer Shadow Traits</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The One [Roll: 1-2]</div><div class="lore-history">Lost a patient. Will take irrational risks to prevent it again.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Cursed Sympathy [Roll: 3-4]</div><div class="lore-history">Absorbs minor ailments from patients. Carries residue.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Order's Eye [Roll: 5-6]</div><div class="lore-history">Healing institution wants them back. Not entirely benevolent.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Overextension [Roll: 7-8]</div><div class="lore-history">Cannot refuse someone asking for help. CHA roll to walk away.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Hollow Sensitivity [Roll: 9-10]</div><div class="lore-history">Feels others' pain literally. -1 WIS in heavy casualty locations.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Experiment [Roll: 11-12]</div><div class="lore-history">Used unsanctioned methods. It worked. Ethics unresolved.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Marked by Death [Roll: 13-14]</div><div class="lore-history">Close to death so often something followed them back. Watching.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Debt of Lives [Roll: 15-16]</div><div class="lore-history">Three people alive because of them. They ask for favors.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Limit [Roll: 17-18]</div><div class="lore-history">Found the thing they couldn't fix. Left a mark on their work.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">What Came Back [Roll: 19-19]</div><div class="lore-history">Revived someone. They were different afterward. Nobody noticed.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">THE HOLLOW'S WEIGHT [Roll: 20]</div><div class="lore-history">Hollow gave them something, took something. Neither named yet.</div></div>
+            
+            <div class="section-title" style="margin-top:40px;">Merchant Shadow Traits</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Outstanding Invoice [Roll: 1-2]</div><div class="lore-history">Owed amount by someone powerful. Collecting is complicated.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Liability [Roll: 3-4]</div><div class="lore-history">Knows something a faction would pay to keep quiet. Noticed.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Creditor [Roll: 5-6]</div><div class="lore-history">Owes more than held. Collector appears once per arc.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Insider [Roll: 7-8]</div><div class="lore-history">Feeding info to competing factions. Neither knows yet.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Hollow Goods [Roll: 9-10]</div><div class="lore-history">Traded item from deep Hollow. Unsure what it did.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Guarantee [Roll: 11-12]</div><div class="lore-history">Personally guaranteed failed transaction. Party wants compensation.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Addiction [Roll: 13-14]</div><div class="lore-history">Collects specific thing. Overpays. Sellers know this.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The List [Roll: 15-16]</div><div class="lore-history">Maintains list of transactions that must never be discovered.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">False Front [Roll: 17-18]</div><div class="lore-history">Business identity took on life of its own. Real obligations.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Price Paid [Roll: 19-19]</div><div class="lore-history">Acquired something rare by trading something personal. Cost surfaces.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">THE HOLLOW'S LEDGER [Roll: 20]</div><div class="lore-history">Hollow has record of every transaction. It has opinions.</div></div>
+            
+            <div class="section-title" style="margin-top:40px;">Bard Shadow Traits</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Song [Roll: 1-2]</div><div class="lore-history">Composed something that caused real harm. Subject knows.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Fabrication [Roll: 3-4]</div><div class="lore-history">Famous story turned out false. Believers still out there.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Audience [Roll: 5-6]</div><div class="lore-history">Someone following performances since before the Hollow.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Compulsive Documentation [Roll: 7-8]</div><div class="lore-history">Records everything. Including things that shouldn't be.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Muse [Roll: 9-10]</div><div class="lore-history">Best work tied to specific person. That person is gone.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Revision [Roll: 11-12]</div><div class="lore-history">Changed important story for someone's benefit. Original exists.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">What They Heard [Roll: 13-14]</div><div class="lore-history">Present for conversation not meant for them. Both parties aware.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Unfinished Song [Roll: 15-16]</div><div class="lore-history">Started piece about Hollow. Gets longer. Gets stranger.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">Hollow Resonance [Roll: 17-18]</div><div class="lore-history">Voice does something in Hollow locations they cannot control.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">The Truth [Roll: 19-19]</div><div class="lore-history">Told a truth so complete it destroyed something. Careful now.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--red);">THE HOLLOW'S VERSE [Roll: 20]</div><div class="lore-history">Hollow composing using their life as material. They feel it.</div></div>`;
+        }
+        
+        if (type === 'Enchants') {
+            html += `<div class="section-title">Enchantments & Blessings</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">Cracked War-Mark [Warrior 1-3]</div><div class="lore-history">Faded symbol glows on fumble. Warning they can't use.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">The Enduring [Warrior 4-6]</div><div class="lore-history">Cannot be knocked out by single blow. Reduced to 0 HP over time.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">Hollow Static [Wizard 1-3]</div><div class="lore-history">Tech and locks behave strangely. Doors open. Mechanisms jam.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">Void Touch [Wizard 18-19]</div><div class="lore-history">Hands pass through non-living matter once per session.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">Lucky Step [Rogue 1-3]</div><div class="lore-history">Once per session, reroll any movement or evasion roll.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">Face Blur [Rogue 13-15]</div><div class="lore-history">People cannot accurately describe their face afterward.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">The Steady Hand [Healer 1-3]</div><div class="lore-history">Rolls do not suffer anxiety penalties under pressure.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">The Transfer [Healer 16-17]</div><div class="lore-history">Once/arc, move status effect from one character to another willing.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">The Eye for Value [Merchant 1-3]</div><div class="lore-history">Assess rarity/worth of Hollow artifact on sight. No roll.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">Hollow Currency [Merchant 18-19]</div><div class="lore-history">Carries single coin from Hollow. Accepted everywhere.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">The Carry [Bard 1-3]</div><div class="lore-history">Voice carries further. Whispers reach across rooms.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--gold);">The Rewrite [Bard 18-19]</div><div class="lore-history">Once/arc, perform revised version of past event. Emotion shifts.</div></div>`;
+        }
+        
+        if (type === 'Destiny') {
+            html += `<div class="section-title">Destiny Threads (DM Eyes Only)</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--purple);">Warrior Thread 1-2</div><div class="lore-history">Will be asked to protect something they do not believe deserves protection. They will do it anyway.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--purple);">Warrior Thread 19</div><div class="lore-history">Every battle survived makes final one inevitable. Hollow is building toward something.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--purple);">Wizard Thread 5-6</div><div class="lore-history">The forbidden thing they studied was a message. They are the intended recipient.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--purple);">Wizard Thread 19</div><div class="lore-history">The thing that answers when they cast has its own intentions.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--purple);">Rogue Thread 9-10</div><div class="lore-history">Given opportunity to disappear completely. Take it or stay—either changes the Hollow.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--purple);">Rogue Thread 19</div><div class="lore-history">The Hollow has an exit. They will find it. What they leave behind is the question.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--purple);">Healer Thread 7-8</div><div class="lore-history">Three people they save will together do something that changes the Hollow.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--purple);">Healer Thread 19</div><div class="lore-history">Something healed early on becomes most important thing. Connection unseen until end.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--purple);">Merchant Thread 5-6</div><div class="lore-history">Offered ownership of something in Hollow. Accepting means never leaving.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--purple);">Merchant Thread 19</div><div class="lore-history">Everything built in Hollow needed in single moment they cannot prepare for.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--purple);">Bard Thread 3-4</div><div class="lore-history">The most important story they tell is happening to them right now.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem; color:var(--purple);">Bard Thread 19</div><div class="lore-history">Everything recorded about other players will matter in final arc.</div></div>`;
+        }
+
+        if (type === 'Factions') {
+            html += `<div class="section-title">World Factions & History</div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">The Moon Squad</div><div class="lore-history">The elite vanguard of the bobblehead world. Forged in the fires of the Great TikTok Migration, they were the first to cross into the board-game dimension of the Hollow. Known for glowing emblems and tactical coordination. They seek to map the unmappable and protect refugees. Crest: Crescent moon over a void.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">The Hollow Warden's Court</div><div class="lore-history">Oldest governing body within the Underground Caverns. They do not rule by law, but by decree of the Dice. Led by the Unseen Warden. They manage the "Protection Mode" bank. Patient, neutral, remember every betrayal. To cross a Warden invites a curse across multiple lives.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">The Crumbling Kingdom</div><div class="lore-history">The surface world that was. Now a ruin pouring refugees into the Hollow. Their military remnants still wear the Garrison steel, clinging to oaths for a king who hasn't been seen in three arcs.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">The Sunken Library</div><div class="lore-history">An academic order that prioritizes documentation over survival. They catalog the Hollow's anomalies. They developed the Scholar's Focus Rod and Binding Lantern. Their records are flawless; their ethics are debated.</div></div>
+            <div class="lore-block"><div class="lore-name" style="font-size:0.9rem;">The Edge Runners</div><div class="lore-history">Smugglers and scouts who operate where the Hollow bleeds into whatever lies beyond. They harvest Edge-wood and Hollow-root. They are heavily irradiated by Hollow magic and rarely live long, but they live wealthy.</div></div>`;
+        }
+        
+        display.innerHTML = html;
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // NPC SYSTEM (MEMORY, RUMORS, BOUNTIES)
+    // ════════════════════════════════════════════════════════════
+    function refreshNpcs() {
+        const s = document.getElementById('nSearch').value.toLowerCase();
+        document.getElementById('npcListDisplay').innerHTML = state.npcs.filter(n => n.name.toLowerCase().includes(s)).map(n => `
+            <div class="npc-card">
+                <div style="font-weight:900; font-size:1.1rem; color:#fff;">${n.name}</div>
+                <div style="font-size:0.7rem; color:var(--accent); text-transform:uppercase; margin-top:2px;">${n.fac} • ${n.disp}</div>
+                <div style="font-size:0.8rem; color:var(--text); margin-top:10px; line-height:1.6; font-style:italic;">${n.notes}</div>
+                <div class="npc-memory-box">
+                    <span class="rumor-tag">ACTIVE RUMORS & SECRETS</span>
+                    <div style="font-size:0.75rem; color:var(--gold); opacity:0.8; margin-bottom:8px;">${n.rumor || "No active rumors."}</div>
+                    <span class="bounty-tag">PLAYER INTERACTIONS & BOUNTIES</span>
+                    <div style="font-size:0.75rem; color:var(--red); opacity:0.8;">${n.bounty || "No specific player memory recorded."}</div>
+                </div>
+                <button class="btn-sm" style="width:100%; margin-top:12px; background:rgba(129, 140, 248, 0.1); color:var(--accent); border-color:var(--accent);" onclick="openNpcEditor(${n.id})">Update NPC Intelligence</button>
+            </div>
+        `).join('');
+    }
+
+    function openNpcEditor(id) {
+        const n = id === 'new' ? {name:"", fac:"", disp:"Neutral", notes:"", rumor:"", bounty:""} : state.npcs.find(x => x.id === id);
+        document.getElementById('npcModalContent').innerHTML = `
+            <div class="section-title">${id === 'new' ? "Register New Entity" : "Update Entity Memory"}</div>
+            <label class="input-label">Entity Name</label><input class="input" id="nn-name" value="${n.name}" placeholder="Name">
+            <label class="input-label">Faction Alignment</label><input class="input" id="nn-fac" value="${n.fac}" placeholder="Faction">
+            <label class="input-label">Current Disposition</label>
+            <select class="input" id="nn-disp">
+                <option ${n.disp==='Allied'?'selected':''}>Allied</option>
+                <option ${n.disp==='Friendly'?'selected':''}>Friendly</option>
+                <option ${n.disp==='Neutral'?'selected':''}>Neutral</option>
+                <option ${n.disp==='Wary'?'selected':''}>Wary</option>
+                <option ${n.disp==='Hostile'?'selected':''}>Hostile</option>
+            </select>
+            <label class="input-label">Background & Motives</label><textarea class="input" id="nn-notes" style="height:80px;" placeholder="History...">${n.notes}</textarea>
+            <label class="input-label">Active Rumors</label><input class="input" id="nn-rumor" value="${n.rumor}" placeholder="What are they saying?">
+            <label class="input-label">Player Specific Memory / Bounties</label><input class="input" id="nn-bounty" value="${n.bounty}" placeholder="Who are they hunting?">
+            <button class="btn" style="margin-top:10px;" onclick="saveNpc(${id === 'new' ? null : id})">Commit to NPC Ledger</button>
+            <button class="btn-sm" style="width:100%; margin-top:10px;" onclick="closeModals()">Discard Changes</button>
+        `;
+        document.getElementById('npcModal').classList.add('open');
+    }
+
+    function saveNpc(id) {
+        const n = { id: id || Date.now(), name: document.getElementById('nn-name').value, fac: document.getElementById('nn-fac').value, disp: document.getElementById('nn-disp').value, notes: document.getElementById('nn-notes').value, rumor: document.getElementById('nn-rumor').value, bounty: document.getElementById('nn-bounty').value };
+        if(id) { const idx = state.npcs.findIndex(x => x.id === id); state.npcs[idx] = n; }
+        else state.npcs.unshift(n);
+        save(); closeModals(); refreshNpcs();
+    }
+
+    // ════════════════════════════════════════════════════════════
+    // RULES & FAQ (HARDCODED)
+    // ════════════════════════════════════════════════════════════
+    function renderFaq() {
+        document.getElementById('faqList').innerHTML = `
+        <div style="margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+            <div style="font-weight:900; color:var(--text); margin-bottom:4px;">1. Can I play if I missed the start?</div>
+            <div style="font-size:0.8rem; color:var(--dim); line-height:1.6;">Yes. New characters can join at any time via the entry gift (1,000 coins). You’ll be introduced at the start of the next live session.</div>
+        </div>
+        <div style="margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+            <div style="font-weight:900; color:var(--text); margin-bottom:4px;">2. What happens if I miss a live session?</div>
+            <div style="font-size:0.8rem; color:var(--dim); line-height:1.6;">Your character exists in the world. If you have Protection Mode banked, you're covered from death and Box Battle targeting. World events and consequences can still reach you. Summaries posted in Discord.</div>
+        </div>
+        <div style="margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+            <div style="font-weight:900; color:var(--text); margin-bottom:4px;">3. How does Protection Mode work?</div>
+            <div style="font-size:0.8rem; color:var(--dim); line-height:1.6;">Protection covers: Death + Box Battle targeting only. It costs 1,000 coins per session missed (deducted from bank). Does NOT cover curses or NPC events. Lore framing: Your character moves with a "ward".</div>
+        </div>
+        <div style="margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+            <div style="font-weight:900; color:var(--text); margin-bottom:4px;">4. How are Kling AI episodes made?</div>
+            <div style="font-size:0.8rem; color:var(--dim); line-height:1.6;">After major story moments (deaths, betrayals, nat-20s), I animate a 15–90 second episode using Kling AI and post it to the feed to recap the lore.</div>
+        </div>
+        <div style="margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+            <div style="font-weight:900; color:var(--text); margin-bottom:4px;">5. Is this Pay-to-Win?</div>
+            <div style="font-size:0.8rem; color:var(--dim); line-height:1.6;">Coins give you more actions, not guaranteed wins. Every action still resolves on a d20. A 30k coin Epic action can still fumble. Big spending creates bigger stakes.</div>
+        </div>
+        <div style="margin-bottom:20px;">
+            <div style="font-weight:900; color:var(--text); margin-bottom:4px;">6. Hall of Fame Requirements?</div>
+            <div style="font-size:0.8rem; color:var(--dim); line-height:1.6;">Inducted for: Nat 20 on world-changing action, story-defining death, Box Battle OP tier (45k+), or an Origin Story episode produced. HOF members get permanent title prefixes.</div>
+        </div>
+        `;
+    }
+
+    // ════ SYSTEM HELPERS ════
+    function rollD20() { document.getElementById('rollVal').innerText = "FATE: " + (Math.floor(Math.random()*20)+1); }
+    function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open')); }
+    function saveNotes() { state.notes = document.getElementById('sessNotes').value; save(); }
+    function clearAllData() { if(confirm("WARNING: This permanently erases the entire database. Proceed?")) { localStorage.clear(); location.reload(); } }
+    function logBattle() { alert("Battle Consequence Locked."); document.getElementById('b-p1').value=''; document.getElementById('b-p2').value=''; document.getElementById('bc1').value=''; document.getElementById('bc2').value=''; }
+
+    // INITIALIZE
+    refreshParty(); renderArsenalHardcoded('Warrior'); renderLoreHardcoded('Skills'); renderFaq();
+  </script>
+</body>
+</html>
