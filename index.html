@@ -1130,62 +1130,83 @@ function save(key, val) { try { localStorage.setItem(STORAGE_PREFIX+key, JSON.st
 function load(key, def) { try { const v = localStorage.getItem(STORAGE_PREFIX+key); return v ? JSON.parse(v) : def; } catch(e){ return def; } }
 
 const STATE = {
-tab: 'players',
-players: load('players', []),
-sessionLog: load('session_log', []),
-sessionActive: load('session_active', false),
-sessionNumber: load('session_number', 1),
-sessionStartTime: load('session_start_time', null),
-mapPins: load('map_pins', []),
-mapEvents: load('map_events', {}),
-mapDanger: load('map_danger', {}),
-raidHistory: load('raid_history', []),
-baseRooms: load('base_rooms', {vault:1,barracks:0,forge:0,infirmary:0,watchtower:0}),
-baseResidents: load('base_residents', []),
-baseDefense: load('base_defense', 3),
-vaults: load('vaults', {}),
-packs: load('packs', {}),
-villainsLive: load('villains_live', []),
-// UI only (not persisted)
-search: '',
-selectedPlayer: null,
-creation: {username:'',charname:'',cls:'',origin:'',payment:'tiktok',notes:'',
-repRoll:null,traitRoll:null,weaponRoll:null,skillRoll:null,shadowRoll:null,enchantRoll:null,destinyRoll:null},
-diceRoll: null,
-diceSpinning: false,
-diceHistory: [],
-diceContext: {player:'',purpose:'',target:'',custom:''},
-battleP1:'',battleP2:'',battleCoins1:'',battleCoins2:'',
-battleTime:180,battleRunning:false,battleInterval:null,
-mapLocation: null,
-showAddPin: false,
-addPinForm: {name:'',type:'player',note:''},
-activeRaid: null,
-raidLog: [],
-raidPhase: 0,
-raidParty: [],
-raidLocation: '',
-raidTier: 'skirmish',
-logSearch: '',
-logFilter: 'all',
-manualEntry: {who:'',what:'',type:null},
-selectedInventoryPlayer: null,
-inventoryTab: 'pack',
-addItemForm: {name:'',type:'weapon',rarity:'Common',condition:'Pristine',enchantment:'',provenance:'',obtainedBy:'found',note:''},
-showAddItem: false,
-showAddResident: false,
-residentForm: {name:'',role:'guard',note:''},
-baseAttack: null,
-classTab: 'Warrior',
-classSec: 'overview',
-villainTab: null,
-villainSec: 'lore',
-rulesTab: 'overview',
-faqSearch: '',
-faqOpen: null,
-arsenalTab: 'weapons',
-arsenalTarget: ''
+  tab: 'players',
+  players: load('players', []),
+  sessionLog: load('session_log', []),
+  sessionActive: load('session_active', false),
+  sessionNumber: load('session_number', 1),
+  sessionStartTime: load('session_start_time', null),
+  mapPins: load('map_pins', []),
+  mapEvents: load('map_events', {}),
+  mapDanger: load('map_danger', {}),
+  raidHistory: load('raid_history', []),
+  baseRooms: load('base_rooms', {vault:1,barracks:0,forge:0,infirmary:0,watchtower:0}),
+  baseResidents: load('base_residents', []),
+  baseDefense: load('base_defense', 3),
+  vaults: load('vaults', {}),
+  packs: load('packs', {}),
+  villainsLive: load('villains_live', []),
+  customVillains: load('custom_villains', []), // <--- THIS WAS MISSING
+  // UI only (not persisted)
+  search: '',
+  selectedPlayer: null,
+  creation: {username:'',charname:'',cls:'',origin:'',payment:'tiktok',notes:'',repRoll:null,traitRoll:null,weaponRoll:null,skillRoll:null,shadowRoll:null,enchantRoll:null,destinyRoll:null},
+  diceRoll: null,
+  diceSpinning: false,
+  diceHistory: [],
+  diceContext: {player:'',purpose:'',target:'',custom:''},
+  battleP1:'',battleP2:'',battleCoins1:'',battleCoins2:'',
+  battleTime:180,battleRunning:false,battleInterval:null,
+  mapLocation: null,
+  showAddPin: false,
+  addPinForm: {name:'',type:'player',note:''},
+  activeRaid: null,
+  raidLog: [],
+  raidPhase: 0,
+  raidParty: [],
+  raidLocation: '',
+  raidTier: 'skirmish',
+  logSearch: '',
+  logFilter: 'all',
+  manualEntry: {who:'',what:'',type:null},
+  selectedInventoryPlayer: null,
+  inventoryTab: 'pack',
+  addItemForm: {name:'',type:'weapon',rarity:'Common',condition:'Pristine',enchantment:'',provenance:'',obtainedBy:'found',note:''},
+  showAddItem: false,
+  showAddResident: false,
+  showAddVillain: false, // <--- THIS WAS MISSING
+  residentForm: {name:'',role:'guard',note:''},
+  baseAttack: null,
+  classTab: 'Warrior',
+  classSec: 'overview',
+  villainTab: null,
+  villainSec: 'lore',
+  rulesTab: 'overview',
+  faqSearch: '',
+  faqOpen: null,
+  arsenalTab: 'Warrior',
+  arsenalTarget: ''
 };
+
+function saveAll() {
+  save('players', STATE.players);
+  save('session_log', STATE.sessionLog);
+  save('session_active', STATE.sessionActive);
+  save('session_number', STATE.sessionNumber);
+  save('session_start_time', STATE.sessionStartTime);
+  save('map_pins', STATE.mapPins);
+  save('map_events', STATE.mapEvents);
+  save('map_danger', STATE.mapDanger);
+  save('raid_history', STATE.raidHistory);
+  save('base_rooms', STATE.baseRooms);
+  save('base_residents', STATE.baseResidents);
+  save('base_defense', STATE.baseDefense);
+  save('vaults', STATE.vaults);
+  save('packs', STATE.packs);
+  save('villains_live', STATE.villainsLive);
+  save('custom_villains', STATE.customVillains); // <--- THIS WAS MISSING
+}
+
 
 function saveAll() {
 save('players', STATE.players);
@@ -1419,9 +1440,10 @@ function renderNPCs() {
   `;
 }
 
-// 🎭 VILLAINS TAB (Freeze-Proof Version)
+// 🎭 VILLAINS TAB
 function renderVillains() {
-  const allVillains = [...(VILLAIN_LORE || []), ...(STATE.customVillains || [])];
+  const custVil = STATE.customVillains || [];
+  const allVillains = [...VILLAIN_LORE, ...custVil];
   const activeVillains = allVillains.filter(v => (STATE.villainsLive || []).includes(v.id));
   const inactiveVillains = allVillains.filter(v => !(STATE.villainsLive || []).includes(v.id));
 
@@ -1490,7 +1512,6 @@ function renderVillains() {
   `;
 }
 
-// Separate helper function with a UNIQUE name to prevent recursion
 function renderVillainSubSection(v) {
   const sec = (STATE.villainTab === v.id) ? STATE.villainSec : 'lore';
   switch(sec) {
