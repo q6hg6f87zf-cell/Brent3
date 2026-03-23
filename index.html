@@ -1440,105 +1440,75 @@ function renderNPCs() {
   `;
 }
 
-// 🎭 VILLAINS TAB
+// 🎭 VILLAINS TAB & BESTIARY
 function renderVillains() {
   const custVil = STATE.customVillains || [];
   const allVillains = [...VILLAIN_LORE, ...custVil];
   const activeVillains = allVillains.filter(v => (STATE.villainsLive || []).includes(v.id));
   const inactiveVillains = allVillains.filter(v => !(STATE.villainsLive || []).includes(v.id));
 
+  // Helper to build the lore cards for BOTH active and inactive bosses
+  const buildCard = (v, isActive) => `
+    <div class="card" style="border-color:${v.color}${isActive ? '90' : '30'}; background:rgba(20,10,30,${isActive ? '0.8' : '0.4'})">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <div style="display:flex; gap:10px; align-items:center">
+          <span style="font-size:1.5rem; ${!isActive ? 'filter:grayscale(1); opacity:0.6;' : ''}">${v.icon}</span>
+          <div>
+            <div style="font-weight:bold; color:${isActive ? '#fff' : 'var(--dim)'}">${v.name}</div>
+            <div style="font-size:0.6rem; color:${v.color}">${v.title}</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:5px">
+          ${isActive 
+            ? `<button class="btn btn-sm btn-red" onclick="toggleVillain('${v.id}')">Retire</button>` 
+            : `<button class="btn btn-sm btn-green" onclick="toggleVillain('${v.id}')">Activate</button>
+               ${v.id.startsWith('custom_') ? `<button class="btn btn-sm btn-red" onclick="deleteCustomVillain('${v.id}')">🗑</button>` : ''}`
+          }
+        </div>
+      </div>
+      
+      <div class="lore-tab-bar" style="margin-top:12px">
+        ${['lore', 'combat', 'phases', 'loot'].map(sec => `
+          <div class="lore-tab ${STATE.villainTab === v.id && STATE.villainSec === sec ? 'active' : ''}" 
+               onclick="STATE.villainTab='${v.id}'; STATE.villainSec='${sec}'; render()">
+            ${sec.charAt(0).toUpperCase() + sec.slice(1)}
+          </div>
+        `).join('')}
+      </div>
+
+      <div style="margin-top:10px; font-size:0.7rem; min-height:80px; color:var(--text); line-height:1.4">
+        ${renderVillainSubSection(v)}
+      </div>
+    </div>
+  `;
+
   return `
     <div class="card-glow">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
         <div class="section-title" style="margin-bottom:0; color:var(--red)">🎭 ACTIVE BOSSES</div>
         <button class="btn btn-sm" style="border-color:var(--red); color:var(--red)" onclick="STATE.showAddVillain=!STATE.showAddVillain;render()">
-          ${STATE.showAddVillain ? '✕' : '＋ New Villain'}
+          ${STATE.showAddVillain ? '✕ Cancel' : '＋ New Villain'}
         </button>
       </div>
 
       ${STATE.showAddVillain ? `
         <div class="roll-box" style="border-color:var(--red); margin-bottom:15px">
-          <label class="label">Villain Name</label><input class="input" id="v-name" style="margin-bottom:8px">
-          <label class="label">Title</label><input class="input" id="v-title" style="margin-bottom:8px">
+          <label class="label">Villain Name</label><input class="input" id="v-name" style="margin-bottom:8px" placeholder="e.g. The Blood Priest">
+          <label class="label">Title</label><input class="input" id="v-title" style="margin-bottom:8px" placeholder="e.g. Keeper of the Old Ways">
           <label class="label">Icon</label><input class="input" id="v-icon" placeholder="💀" style="margin-bottom:8px">
           <label class="label">Max HP</label><input class="input" id="v-hp" type="number" value="100" style="margin-bottom:10px">
           <button class="btn btn-red btn-full" onclick="addCustomVillain()">✦ Forge Boss</button>
         </div>
       ` : ''}
 
-      ${activeVillains.length === 0 ? '<div class="empty-state">No villains are currently active.</div>' : 
-        activeVillains.map(v => `
-          <div class="card" style="border-color:${v.color}60; background:rgba(20,10,30,0.8)">
-            <div style="display:flex; justify-content:space-between; align-items:center">
-              <div style="display:flex; gap:10px; align-items:center">
-                <span style="font-size:1.5rem">${v.icon}</span>
-                <div>
-                  <div style="font-weight:bold; color:#fff">${v.name}</div>
-                  <div style="font-size:0.6rem; color:${v.color}">${v.title}</div>
-                </div>
-              </div>
-              <button class="btn btn-sm btn-red" onclick="toggleVillain('${v.id}')">Retire</button>
-            </div>
-            
-            <div class="lore-tab-bar" style="margin-top:12px">
-              ${['lore', 'combat', 'phases', 'loot'].map(sec => `
-                <div class="lore-tab ${STATE.villainTab === v.id && STATE.villainSec === sec ? 'active' : ''}" 
-                     onclick="STATE.villainTab='${v.id}'; STATE.villainSec='${sec}'; render()">
-                  ${sec.charAt(0).toUpperCase() + sec.slice(1)}
-                </div>
-              `).join('')}
-            </div>
-
-            <div style="margin-top:10px; font-size:0.7rem; min-height:80px; color:var(--text); line-height:1.4">
-              ${renderVillainSubSection(v)}
-            </div>
-          </div>
-        `).join('')}
+      ${activeVillains.length === 0 ? '<div class="empty-state">No villains are currently active.</div>' : activeVillains.map(v => buildCard(v, true)).join('')}
     </div>
 
     <div class="card">
-      <div class="section-title">Villain Dossier (Inactive)</div>
-      <div style="display:grid; grid-template-columns:1fr; gap:6px">
-        ${inactiveVillains.map(v => `
-          <div style="display:flex; gap:5px; align-items:center">
-            <button class="btn btn-sm" style="flex:1; justify-content:flex-start; text-align:left; background:rgba(10,8,30,0.6)" onclick="toggleVillain('${v.id}')">
-              ${v.icon} Activate ${v.name}
-            </button>
-            ${v.id.startsWith('custom_') ? `<button class="btn btn-sm btn-red" onclick="deleteCustomVillain('${v.id}')">🗑</button>` : ''}
-          </div>
-        `).join('')}
-      </div>
+      <div class="section-title">Bestiary (Inactive / Prep)</div>
+      ${inactiveVillains.length === 0 ? '<div style="color:var(--dim); font-size:0.7rem;">All villains are active.</div>' : inactiveVillains.map(v => buildCard(v, false)).join('')}
     </div>
   `;
-}
-
-function renderVillainSubSection(v) {
-  const sec = (STATE.villainTab === v.id) ? STATE.villainSec : 'lore';
-  switch(sec) {
-    case 'lore': return `<div><b>Motivation:</b> ${v.motivation}</div><div style="margin-top:8px; font-style:italic; color:var(--dim)">"${v.lore}"</div>`;
-    case 'combat': return `
-      <div class="section-title">Combat Strengths</div>
-      ${(v.strengths || []).map(s => `<div style="color:var(--green); margin-bottom:2px">✦ ${s}</div>`).join('')}
-      <div class="section-title" style="margin-top:8px">Weaknesses</div>
-      ${(v.weaknesses || []).map(w => `<div style="color:var(--red); margin-bottom:2px">⚔️ ${w}</div>`).join('')}
-    `;
-    case 'phases': return (v.phases || []).map(p => `
-      <div class="phase-card" style="background:${p.color}15; border:1px solid ${p.color}40; margin-bottom:5px; padding:8px; border-radius:6px">
-        <div style="display:flex; justify-content:space-between; font-weight:bold; color:${p.color}">
-          <span>P${p.phase}: ${p.name}</span>
-          <span>${p.hp}</span>
-        </div>
-        <div style="font-size:0.6rem; color:#ccc; margin-top:2px">${p.desc}</div>
-      </div>
-    `).join('');
-    case 'loot': return (v.loot || []).map(l => `
-      <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border)">
-        <span>${l.item}</span>
-        <span style="color:var(--gold)">${l.chance}</span>
-      </div>
-    `).join('');
-    default: return 'Select a section above.';
-  }
 }
 
 // DICE TAB
@@ -2269,6 +2239,41 @@ function addResident() {
 function rmResident(index) {
   if (!confirm("Remove this resident?")) return;
   STATE.baseResidents.splice(index, 1);
+  saveAll();
+  render();
+}
+function toggleVillain(id) {
+  if (!STATE.villainsLive) STATE.villainsLive = [];
+  if (STATE.villainsLive.includes(id)) {
+    STATE.villainsLive = STATE.villainsLive.filter(v => v !== id);
+  } else {
+    STATE.villainsLive.push(id);
+    addLog({ type: 'battle', who: 'DM', what: `Boss Activated: ${id}` });
+  }
+  saveAll();
+  render();
+}
+
+function addCustomVillain() {
+  const name = document.getElementById('v-name').value;
+  const title = document.getElementById('v-title').value;
+  const icon = document.getElementById('v-icon').value || '💀';
+  const hp = document.getElementById('v-hp').value || 100;
+  if(!name) return;
+  
+  if(!STATE.customVillains) STATE.customVillains = [];
+  
+  STATE.customVillains.push({
+    id: 'custom_' + Date.now(),
+    name: name, title: title, icon: icon, color: '#ef5350', hp: hp,
+    motivation: 'Generated by GM.',
+    lore: 'A new threat enters the Hollow Realm.',
+    strengths: ['Unknown'], weaknesses: ['Unknown'],
+    phases: [{phase: 1, name: 'Initial Encounter', hp: hp + ' HP', desc: 'The battle begins.'}],
+    loot: [{item: 'Unknown Boss Loot', chance: '100%'}]
+  });
+  
+  STATE.showAddVillain = false;
   saveAll();
   render();
 }
