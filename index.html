@@ -1235,20 +1235,26 @@ addLog({type:'hp', who:p.charname, what:`HP ${delta>0?'+':''}${delta} → ${nh}/
 if (nh === 0) addLog({type:'death', who:p.charname, what:`${p.charname} DOWNED at 0 HP`});
 }
 
-const TABS=[{id:'players',label:'👥 
-Players'},{id:'create',label:'🪆 Create'},{id:'npcs',label:'👁️NPCs'},
-{id:'villains',label:'🎭 Villains'},{id:'dice',label:'🎲 Dice'},
-{id:'battle',label:'⚔️ Battle'},{
-id:'log',label:'⏱ Log'},
-{id:'map',label:'🌍 Map'},
-{id:'raids',label:'⚔️ Raids'},
-{id:'base',label:'🏠 Base'},
-{id:'arsenal',label:'🛡️ Arsenal'},{id:'classes',label:'🧙 Classes'},{id:'rules',label:'📜 Rules'}];
-]; / /
+const TABS=[
+  {id:'players',label:'👥 Players'},
+  {id:'create',label:'🪆 Create'},
+  {id:'npcs',label:'🏠 NPCs'},
+  {id:'villains',label:'🎭 Villains'},
+  {id:'dice',label:'🎲 Dice'},
+  {id:'battle',label:'⚔️ Battle'},
+  {id:'log',label:'⏱ Log'},
+  {id:'map',label:'🌍 Map'},
+  {id:'raids',label:'⚔️ Raids'},
+  {id:'base',label:'🏠 Base'},
+  {id:'arsenal',label:'🛡️ Arsenal'},
+  {id:'classes',label:'🧙 Classes'},
+  {id:'rules',label:'📜 Rules'}
+];
+
 function render(){
-const tb=document.getElementById('tab-bar');
-const pn=document.getElementById('panel');
-if(!tb||!pn)return;
+  const tb=document.getElementById('tab-bar');
+  const pn=document.getElementById('panel');
+  if(!tb||!pn) return;
 
   // This builds the navigation buttons
   tb.innerHTML = TABS.map(t => `<div class="tab${STATE.tab === t.id ? ' active' : ''}" onclick="STATE.tab='${t.id}';render()">${t.label}</div>`).join('');
@@ -2072,7 +2078,7 @@ function resetBattle() {
   STATE.battleCoins1 = '';
   STATE.battleCoins2 = '';
   render();
-}
+  }
 
 function beginSession() {
   STATE.sessionActive = true;
