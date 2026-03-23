@@ -1244,28 +1244,34 @@ id:'log',label:'⏱ Log'},
 {id:'raids',label:'⚔️ Raids'},
 {id:'base',label:'🏠 Base'},
 {id:'arsenal',label:'🛡️ Arsenal'},{id:'classes',label:'🧙 Classes'},{id:'rules',label:'📜 Rules'}];
-
+]; / /
 function render(){
 const tb=document.getElementById('tab-bar');
 const pn=document.getElementById('panel');
 if(!tb||!pn)return;
-tb.innerHTML=TABS.map(t=>`<div class="tab${STATE.tab===t.id?' active':''}" onclick="STATE.tab='${t.id}';render()">${t.label}</div>`).join('');
-pn.className='panel fade-in';
-switch(STATE.tab){
-case 'players': pn.innerHTML=renderPlayers();break;
-case 'create':  pn.innerHTML=renderCreate();break;
-case 'npcs':     pn.innerHTML=renderNPCs();break;
-case 'villains': pn.innerHTML=renderVillains();break;
-case 'dice':    pn.innerHTML=renderDice();break;
-case 'battle':  pn.innerHTML=renderBattle();break;
-case 'log':     pn.innerHTML=renderLog();break;
-case 'map':     pn.innerHTML=renderMap();break;
-case 'raids':   pn.innerHTML=renderRaids();break;
-case 'base':    pn.innerHTML=renderBase();break;
-case 'arsenal': pn.innerHTML=renderArsenal();break;
-case 'classes': pn.innerHTML=renderClasses();break;
-case 'rules':   pn.innerHTML=renderRules();break;
-default:        pn.innerHTML=renderPlayers();
+
+  // This builds the navigation buttons
+  tb.innerHTML = TABS.map(t => `<div class="tab${STATE.tab === t.id ? ' active' : ''}" onclick="STATE.tab='${t.id}';render()">${t.label}</div>`).join('');
+
+  pn.className = 'panel fade-in';
+
+  switch(STATE.tab){
+
+    case 'players':  pn.innerHTML=renderPlayers();break;
+    case 'create':   pn.innerHTML=renderCreate();break;
+    case 'npcs':     pn.innerHTML=renderNPCs();break;
+    case 'villains': pn.innerHTML=renderVillains();break;
+    case 'dice':     pn.innerHTML=renderDice();break;
+    case 'battle':   pn.innerHTML=renderBattle();break;
+    case 'log':      pn.innerHTML=renderLog();break;
+    case 'map':      pn.innerHTML=renderMap();break;
+    case 'raids':    pn.innerHTML=renderRaids();break;
+    case 'base':     pn.innerHTML=renderBase();break;
+    case 'arsenal':  pn.innerHTML=renderArsenal();break;
+    case 'classes':  pn.innerHTML=renderClasses();break;
+    case 'rules':    pn.innerHTML=renderRules();break;
+ 
+  default:        pn.innerHTML=renderPlayers();
 }
 const pm=document.getElementById('player-modal');
 const im=document.getElementById('inventory-modal');
