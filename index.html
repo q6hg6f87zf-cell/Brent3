@@ -1419,11 +1419,11 @@ function renderNPCs() {
   `;
 }
 
-// 🎭 VILLAINS TAB (The Bosses)
+// 🎭 VILLAINS TAB (Freeze-Proof Version)
 function renderVillains() {
-  const allVillains = [...VILLAIN_LORE, ...STATE.customVillains];
-  const activeVillains = allVillains.filter(v => STATE.villainsLive.includes(v.id));
-  const inactiveVillains = allVillains.filter(v => !STATE.villainsLive.includes(v.id));
+  const allVillains = [...(VILLAIN_LORE || []), ...(STATE.customVillains || [])];
+  const activeVillains = allVillains.filter(v => (STATE.villainsLive || []).includes(v.id));
+  const inactiveVillains = allVillains.filter(v => !(STATE.villainsLive || []).includes(v.id));
 
   return `
     <div class="card-glow">
@@ -1436,16 +1436,42 @@ function renderVillains() {
 
       ${STATE.showAddVillain ? `
         <div class="roll-box" style="border-color:var(--red); margin-bottom:15px">
-          <label class="label">Villain Name</label><input class="input" id="v-name" style="margin-bottom:8px" placeholder="Boss Name">
-          <label class="label">Title</label><input class="input" id="v-title" style="margin-bottom:8px" placeholder="The Harbinger">
+          <label class="label">Villain Name</label><input class="input" id="v-name" style="margin-bottom:8px">
+          <label class="label">Title</label><input class="input" id="v-title" style="margin-bottom:8px">
           <label class="label">Icon</label><input class="input" id="v-icon" placeholder="💀" style="margin-bottom:8px">
           <label class="label">Max HP</label><input class="input" id="v-hp" type="number" value="100" style="margin-bottom:10px">
           <button class="btn btn-red btn-full" onclick="addCustomVillain()">✦ Forge Boss</button>
         </div>
       ` : ''}
 
-      ${activeVillains.length === 0 ? '<div class="empty-state" style="padding:40px">No villains are currently active.</div>' : 
-        activeVillains.map(v => renderVillainCard(v)).join('')}
+      ${activeVillains.length === 0 ? '<div class="empty-state">No villains are currently active.</div>' : 
+        activeVillains.map(v => `
+          <div class="card" style="border-color:${v.color}60; background:rgba(20,10,30,0.8)">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+              <div style="display:flex; gap:10px; align-items:center">
+                <span style="font-size:1.5rem">${v.icon}</span>
+                <div>
+                  <div style="font-weight:bold; color:#fff">${v.name}</div>
+                  <div style="font-size:0.6rem; color:${v.color}">${v.title}</div>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-red" onclick="toggleVillain('${v.id}')">Retire</button>
+            </div>
+            
+            <div class="lore-tab-bar" style="margin-top:12px">
+              ${['lore', 'combat', 'phases', 'loot'].map(sec => `
+                <div class="lore-tab ${STATE.villainTab === v.id && STATE.villainSec === sec ? 'active' : ''}" 
+                     onclick="STATE.villainTab='${v.id}'; STATE.villainSec='${sec}'; render()">
+                  ${sec.charAt(0).toUpperCase() + sec.slice(1)}
+                </div>
+              `).join('')}
+            </div>
+
+            <div style="margin-top:10px; font-size:0.7rem; min-height:80px; color:var(--text); line-height:1.4">
+              ${renderVillainSubSection(v)}
+            </div>
+          </div>
+        `).join('')}
     </div>
 
     <div class="card">
@@ -1462,6 +1488,36 @@ function renderVillains() {
       </div>
     </div>
   `;
+}
+
+// Separate helper function with a UNIQUE name to prevent recursion
+function renderVillainSubSection(v) {
+  const sec = (STATE.villainTab === v.id) ? STATE.villainSec : 'lore';
+  switch(sec) {
+    case 'lore': return `<div><b>Motivation:</b> ${v.motivation}</div><div style="margin-top:8px; font-style:italic; color:var(--dim)">"${v.lore}"</div>`;
+    case 'combat': return `
+      <div class="section-title">Combat Strengths</div>
+      ${(v.strengths || []).map(s => `<div style="color:var(--green); margin-bottom:2px">✦ ${s}</div>`).join('')}
+      <div class="section-title" style="margin-top:8px">Weaknesses</div>
+      ${(v.weaknesses || []).map(w => `<div style="color:var(--red); margin-bottom:2px">⚔️ ${w}</div>`).join('')}
+    `;
+    case 'phases': return (v.phases || []).map(p => `
+      <div class="phase-card" style="background:${p.color}15; border:1px solid ${p.color}40; margin-bottom:5px; padding:8px; border-radius:6px">
+        <div style="display:flex; justify-content:space-between; font-weight:bold; color:${p.color}">
+          <span>P${p.phase}: ${p.name}</span>
+          <span>${p.hp}</span>
+        </div>
+        <div style="font-size:0.6rem; color:#ccc; margin-top:2px">${p.desc}</div>
+      </div>
+    `).join('');
+    case 'loot': return (v.loot || []).map(l => `
+      <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid var(--border)">
+        <span>${l.item}</span>
+        <span style="color:var(--gold)">${l.chance}</span>
+      </div>
+    `).join('');
+    default: return 'Select a section above.';
+  }
 }
 
 // DICE TAB
