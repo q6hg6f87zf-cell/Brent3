@@ -1262,7 +1262,6 @@ function render(){
   pn.className = 'panel fade-in';
 
   switch(STATE.tab){
-
     case 'players':  pn.innerHTML=renderPlayers();break;
     case 'create':   pn.innerHTML=renderCreate();break;
     case 'npcs':     pn.innerHTML=renderNPCs();break;
@@ -1276,13 +1275,13 @@ function render(){
     case 'arsenal':  pn.innerHTML=renderArsenal();break;
     case 'classes':  pn.innerHTML=renderClasses();break;
     case 'rules':    pn.innerHTML=renderRules();break;
- 
-  default:        pn.innerHTML=renderPlayers();
-}
-const pm=document.getElementById('player-modal');
-const im=document.getElementById('inventory-modal');
-if(pm){pm.innerHTML=STATE.selectedPlayer?renderPlayerModal():'';pm.className='modal-overlay'+(STATE.selectedPlayer?' active':'');}
-if(im){im.innerHTML=STATE.selectedInventoryPlayer?renderInventoryModal():'';im.className='modal-overlay'+(STATE.selectedInventoryPlayer?' active':'');}
+    default:         pn.innerHTML=renderPlayers();
+  }
+
+  const pm=document.getElementById('player-modal');
+  const im=document.getElementById('inventory-modal');
+  if(pm){pm.innerHTML=STATE.selectedPlayer?renderPlayerModal():'';pm.className='modal-overlay'+(STATE.selectedPlayer?' active':'');}
+  if(im){im.innerHTML=STATE.selectedInventoryPlayer?renderInventoryModal():'';im.className='modal-overlay'+(STATE.selectedInventoryPlayer?' active':'');}
 }
 
 function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
